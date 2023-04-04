@@ -14,7 +14,7 @@ axios.get('https://inscribe.news/api/data/ord-news')
 
     let ids = {};
 
-    const adds = [];
+    let adds = [];
     
     fs.readFile(`${__dirname}/ids.json`)
     .then((response) => {
@@ -37,7 +37,7 @@ axios.get('https://inscribe.news/api/data/ord-news')
                 
                 let client;
                 
-                if (session.expiresIn > Date.now()/1000) {
+                if (session.expiresIn > Math.round(Date.now()/1000)) {
                     client = new TwitterApi(session.accessToken);
                 }
                 else {
@@ -57,7 +57,7 @@ axios.get('https://inscribe.news/api/data/ord-news')
                         ...session,
                         accessToken,
                         refreshToken: newRefreshToken,
-                        expiresIn: Date.now()/1000+expiresIn
+                        expiresIn: Math.round(Date.now()/1000)+expiresIn
                     }))
                     .then(() => {
                         console.log('Refresh!');
@@ -67,45 +67,50 @@ axios.get('https://inscribe.news/api/data/ord-news')
                     });
                 }
             
-                const tweets = [];
+                adds = [...new Set(adds)];
                 
                 for (let a=0; a<adds.length; a++) {
-                    let data;
-                    
                     try {
-                        data = await axios.get(`https://inscribe.news/api/data/${adds[a]}`);
-                        data = data.data.body.substring(0, 144);
+                        const data = await axios.get(`https://inscribe.news/api/data/${adds[a]}`);
+                        let title = data.data.title;
+
+                        await client.v2.tweet(`${title}\nhttps://inscribe.news/view-news?id=${adds[a]}\n@1btcnews #Bitcoin`);
+
+                        // todo implement wait time
+                        
+                        console.log(`Tweet: ${title}`);
+                        
+                        ids[adds[a]] = true;
                     }
                     catch (error) {
-                        data = adds[a];
+                        //data = adds[a];
+                        console.log(error);
                     }
                     
                     //console.log(data);
-                    
-                    tweets.push(client.v2.tweet(data));
                 }
 
-                // todo implement synchronously
-                Promise.allSettled(tweets)
-                .then((results) => {
-                    for (let r=0; r<results.length; r++) {
-                        if (results[r].status === 'fulfilled') {
-                            ids[adds[r]] = true;
-                        }
-                    }
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-                .finally(() => {
+                // // todo implement synchronously
+                // Promise.allSettled(tweets)
+                // .then((results) => {
+                //     for (let r=0; r<results.length; r++) {
+                //         if (results[r].status === 'fulfilled') {
+                //             ids[adds[r]] = true;
+                //         }
+                //     }
+                // })
+                // .catch((error) => {
+                //     console.log(error);
+                // })
+                // .finally(() => {
                     fs.writeFile(`${__dirname}/ids.json`, JSON.stringify(ids))
                     .then(() => {
-                        console.log('Success!');
+                        //console.log('Success!');
                     })
                     .catch((error) => {
                         console.log(error);
                     });
-                });
+                // });
             })
             .catch((error) => {
                 console.log(error);
