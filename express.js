@@ -8,7 +8,7 @@ const app = express();
 
 const fs = require('fs').promises;
 
-app.get('/1btcnews', (req, res) => {
+app.get('/authorize', (req, res) => {
     // Instantiate with desired auth type (here's Bearer v2 auth)
     const client = new TwitterApi({
         clientId: process.env.CLIENT_ID,

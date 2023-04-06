@@ -74,7 +74,7 @@ axios.get('https://inscribe.news/api/data/ord-news')
                         const data = await axios.get(`https://inscribe.news/api/data/${adds[a]}`);
                         let title = data.data.title;
 
-                        await client.v2.tweet(`${title}\nhttps://inscribe.news/view-news?id=${adds[a]}\n@1btcnews #Bitcoin`);
+                        await client.v2.tweet(`${title}\nhttps://inscribe.news/view-news?id=${adds[a]}\n${process.env.HASH_TAGS}`);
 
                         // todo implement wait time
                         
